@@ -1,0 +1,90 @@
+swagger: "2.0"
+info:
+  title: "ReadPositive"
+  description: "ReadPositive API"
+  version: "0.1"
+security:
+  - api_key: []
+# This field will be replaced by the deploy_api.sh script.
+host: "readpositive-298614.appspot.com"
+x-google-endpoints:
+  - name: "readpositive-298614.appspot.com"
+    allowCors: True
+schemes:
+  - "https"
+securityDefinitions:
+  api_key:
+  # Basic authentication with an API key.
+      type: "apiKey"
+      name: "key"
+      in: "query"
+paths:
+  "/writeMessage":
+      post:
+        security:
+          - api_key: []
+        description: "Write message to feed"
+        operationId: "WriteMessage"
+        consumes:
+          - application/json
+        parameters:
+          - in: body
+            name: parameters
+            description: parameters.
+            schema:
+              type: object
+              required:
+                - link
+                - summary
+                - publisher
+              properties:
+                link:
+                  type: string
+                summary:
+                  type: string
+                publisher:
+                  type: string
+        responses:
+          200:
+            description: "success or failed, including the reason if failed"
+            schema:
+              $ref: '#/definitions/StatusValue'
+  "/getFeed":
+    post:
+      security:
+        - api_key: [ ]
+      description: "get feed"
+      operationId: "getFeed"
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: parameters
+          description: parameters.
+          schema:
+            type: object
+            required:
+              - positivity_threshold
+            properties:
+              positivity_threshold:
+                type: string
+      responses:
+        200:
+          description: "success or failed, including the reason if failed"
+          schema:
+            $ref: '#/definitions/StatusValue'
+
+# Descriptions of common components
+definitions:
+  StatusValue:
+    type: object
+    properties:
+      status:
+        type: string
+      reason:
+        type: string
+      value:
+        type: string
+    required:
+      - status
+

@@ -1,0 +1,91 @@
+﻿@inject UserInfo UserInfo
+
+<style>
+    .picture {
+    background: url( @ImpageURL );
+    position: relative;
+    width: @pictureSize;
+    height: 0;
+    padding-bottom: @pictureSize;
+    background-size: cover;
+    border-radius: @pictureSize;
+    }
+
+    .logo{
+        background: url(@logo);
+        position: relative;
+        width: @logoSize;
+        height: 0;
+        padding-bottom: @logoSize;
+        background-size: cover;
+        border-radius: @logoSize;
+    }
+</style>
+
+<div class="top-row pl-4 navbar navbar-light" style="background-color:white">
+    <div style="margin-left:150px;" class="logo"></div>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu" style="margin-top:40px">
+    <ul class="nav flex-column">
+        <div class="mx-4 picture"></div>
+        <div class="mx-4" style="font-size:20px; color:#515166; font-weight:bold">
+            @Name
+        </div>
+        <li class="nav-item px-5">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Feed
+            </NavLink>
+        </li>
+        <li class="nav-item px-5">
+            <div class="nav-link" href="/activity">
+                <span class="oi oi-plus" aria-hidden="true"></span> Activity
+            </div>
+        </li>
+        <li class="nav-item px-5">
+            <div class="nav-link" href="/news">
+                <span class="oi oi-browser" aria-hidden="true"></span> My news
+            </div>
+        </li>
+        <li class="nav-item px-5">
+            <div class="nav-link" href="/settings">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Settings
+            </div>
+        </li>
+        <li class="nav-item px-5">
+            <div class="nav-link" href="/logout">
+                <span class="oi oi-account-logout" aria-hidden="true"></span> Logout
+            </div>
+        </li>
+    </ul>
+</div>
+
+@code {
+
+    [Parameter]
+    public string ImpageURL { get; set; } = "../css/Picture/anonymous.PNG";
+    public string logo { get; set; } = "../css/Picture/Logo.png";
+
+    public string Name => UserInfo.UserName;
+
+    private bool collapseNavMenu = true;
+
+    private string pictureSize = "70px";
+    private string logoSize = "60px";
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override void OnInitialized()
+    {
+        UserInfo.StateHasChanged += () => StateHasChanged();
+        base.OnInitialized();
+    }
+}

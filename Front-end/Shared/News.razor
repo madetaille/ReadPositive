@@ -1,0 +1,123 @@
+﻿@inject HttpClient httpClient;
+@inject PersonGenerator PersonGenerator;
+@inject UserInfo UserInfo;
+@using System.Timers; 
+@implements IDisposable
+
+<style>
+    .picture-1-@ccsIsol {
+    background: url( "@GetImagePath()" );
+    background-position:center;
+    position: relative;
+    width: @pictureSize;
+    height: 0;
+    padding-bottom: @pictureSize;
+    background-size: cover;
+    border-radius: @pictureSize;
+    }
+
+    .button-style-1 {
+        text-align: center;
+        background-color: #94c11f;
+        border: none;
+        text-align: center;
+        cursor: pointer;
+        height: 100%;
+        width: auto;
+        color: white;
+        border-radius: 4px;
+        font-size: 15px;
+        font-weight: 100;
+        padding: 2px 18px;
+    }
+
+</style>
+
+<div class="mx-3" style="display:grid; grid-template-columns:min-content auto auto;">
+    <div class="picture-1-@ccsIsol" style="grid-row:1;grid-column:1"></div>
+    <div class="mx-2" style="grid-row:1;grid-column:2">
+        <div style="color:#515166; font-weight:bold">@NewsItem.UserName</div>
+        <div style="color:#B8B8BF; font-size:12px"> @NewsItem.Company</div>
+    </div>
+    <div style="text-align:end; margin-top:auto; grid-row:1; grid-column:3; color:#B8B8BF;font-size:12px">@ElapsedTime</div>
+    <div class="my-2" style="white-space:pre-line; grid-column:1/4">
+        @NewsItem.Summary
+    </div>
+    <div style="margin-left:auto;grid-column:3;">
+        <form action="@NewsItem.Link" target="_blank" style="height:35px">
+            <button class="button-style-1" type="submit" style="width:auto;font-weight:bold;color:white;">Read more</button>
+        </form>
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public ReadPositive.Shared.News NewsItem { get; set; }
+
+    private string pictureSize = "46px";
+
+    private Timer timer;
+
+    private string ElapsedTime;
+
+    private string ccsIsol = Guid.NewGuid().ToString();
+
+    private string GetImagePath()
+    {
+        var username = NewsItem.UserName.ToLower().Trim();
+        if (username.Equals("renaud danniau"))
+            return "../css/Picture/Renaud.PNG";
+
+        if (username.Equals("reya"))
+            return "../css/Picture/user4.PNG";
+
+        if (username.Equals("mattieu"))
+            return "../css/Picture/user1.PNG";
+
+        if (username.Equals("rémi brus"))
+            return "../css/Picture/user3.PNG";
+
+        // check if it is the user post
+        if(UserInfo.IsUserPost(NewsItem.Summary))
+            return "../css/Picture/anonymous.PNG";
+
+        return PersonGenerator.GetPictureURL(username);
+    }
+
+    protected override void OnInitialized()
+    {
+        timer = new Timer(1000);
+        timer.Elapsed += OnTimedEvent;
+        timer.AutoReset = true;
+        timer.Enabled = true;
+        base.OnInitialized();
+    }
+
+    private void OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        // todo
+        ElapsedTime = ConvertTimeSpanStrategy(DateTime.UtcNow - NewsItem.Datetime);
+        StateHasChanged();
+    }
+
+    private string ConvertTimeSpanStrategy(TimeSpan timeSpan)
+    {
+        if (timeSpan.TotalSeconds < 60)
+            return $"{timeSpan.TotalSeconds.ToString("0.")}s ago";
+        if (timeSpan.TotalSeconds < 3600)
+            return $"{(timeSpan.TotalSeconds / 60).ToString("0.")}min ago";
+        if (timeSpan.TotalSeconds < 3600 * 24)
+            return $"{(timeSpan.TotalSeconds / 3600).ToString("0.")}h ago";
+
+        return $"{(timeSpan.TotalSeconds / 3600 / 24).ToString("0.")}days ago";
+    }
+
+    public void Dispose()
+    {
+        timer.Stop();
+        timer.Elapsed -= OnTimedEvent;
+        timer = null;
+    }
+}

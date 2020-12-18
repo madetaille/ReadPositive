@@ -1,0 +1,120 @@
+﻿@inject HttpClient httpClient; 
+@inject UserInfo UserInfo; 
+@using ReadPositive.Shared;
+
+<style>
+    .bg {
+        border-radius: 5px 5px 0px 0px;
+        background: #E4E5EC;
+        /*background: transparent;*/
+    }
+
+    .txtarea-style {
+        resize: none;
+        outline-color: #E4E5EC;
+        border-color: #E4E5EC;
+        outline-width:0px;
+    }
+
+    .button-style {
+        text-align: center;
+        background-color: #94c11f;
+        border: none;
+        text-align: center;
+        cursor: pointer;
+        height: 100%;
+        width: 100%;
+        color: white;
+        border-radius:5px;
+        font-weight:bold;
+    }
+
+    .input-style
+    {
+        background-color:white
+        /*background-color:transparent*/
+    }
+    .input-style input:focus {
+        border: 0;
+        outline: none;
+    }
+
+</style>
+
+<div class="bg" style="height:200px;padding:20px; display:flex; flex-direction:column">
+    <div style="height:auto;flex-grow:5">
+        <div style="height:100%">
+            <textarea @bind-value="message" @bind-value:event="oninput" class="txtarea-style bg" maxlength="250" style="width:100%;height:82%" placeholder="Write a news ..."></textarea>
+            @if (string.IsNullOrEmpty(error) == false)
+            {
+                <div style="color:red;font-size:12px; text-align:end">@error</div>
+            }
+        </div>
+    </div>
+    <div style="margin-top:auto; display:grid; grid-template-columns:auto 100px; height:30px">
+        <input class="input-style" @bind="link" type="text" style="grid-column:1; border:0; border-radius:3px;" placeholder="News link ..."/>
+        <button class="button-style" style="grid-column:2; margin-left:20px; width:auto" @onclick="Post">Post</button>
+
+    </div>
+    
+</div>
+
+@code {
+
+        [Parameter] public int MaxCharacters { get; set; } = 200;
+
+        [Parameter] public EventCallback<ReadPositive.Shared.NewPost> Posted { get; set; }
+
+    private string _message;
+    private string error = "";
+    private string message
+    {
+        get => _message;
+        set
+        {
+            //_message = value;
+            if (value != null && value.Length < MaxCharacters)
+            {
+                _message = value;
+                error = "";
+            }
+            else
+            {
+                error = $"Max characters reached ({MaxCharacters}) ";
+            }
+        }
+    }
+    private string link;
+
+    private async Task Post()
+    {
+        if (string.IsNullOrEmpty(message) || message.Length < 5)
+        {
+            error = "You must write something ..";
+            return;
+        }
+
+        var post = new NewPost()
+        {
+            Link = string.IsNullOrEmpty(link) ? "http://google.com" : link,
+            Company = UserInfo.Company,
+            Publisher = UserInfo.UserName,
+            Summary = message
+        };
+        var s = await httpClient.PostAsJsonAsync("/writeMessage?key=APIKEY", post);
+
+        UserInfo.UserPostSummary.Add(post.Summary);
+
+        ClearPost();
+        Console.WriteLine("Raise posted");
+        await Posted.InvokeAsync(post);
+
+    }
+
+    private void ClearPost()
+    {
+        link = "";
+        message = "";
+    }
+
+}
